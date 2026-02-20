@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biotechnology Database Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input[type="text"] {
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .database-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .database-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .database-option:hover {
+            background: #e9ecef;
+        }
+
+        .database-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .database-option label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .database-option input:checked + label {
+            color: #667eea;
+        }
+
+        .form-group select {
+            padding: 12px 20px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-button {
+            padding: 18px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+
+        .quick-links {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .quick-links h3 {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .quick-links a {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 5px;
+            background: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .quick-links a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .search-box {
+                padding: 25px;
+            }
+            
+            .database-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 Biotechnology Database Search</h1>
+            <p>Search across NCBI and UniProt databases for protein, nucleotide, and gene information</p>
+        </div>
+
+        <div class="search-box">
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form class="search-form" action="/search" method="POST">
+                <div class="form-group">
+                    <label for="query">🔍 Search Term</label>
+                    <input type="text" 
+                           id="query" 
+                           name="query" 
+                           placeholder="Enter gene name, protein, sequence, or keyword (e.g., insulin, BRCA1, enzyme)"
+                           required
+                           autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>📊 Select Databases</label>
+                    <div class="database-options">
+                        <div class="database-option">
+                            <input type="checkbox" id="ncbi_protein" name="databases" value="ncbi_protein" checked>
+                            <label for="ncbi_protein">NCBI Protein</label>
+                        </div>
+                        <div class="database-option">
+                            <input type="checkbox" id="ncbi_nucleotide" name="databases" value="ncbi_nucleotide">
+                            <label for="ncbi_nucleotide">NCBI Nucleotide</label>
+                        </div>
+                        <div class="database-option">
+                            <input type="checkbox" id="ncbi_genes" name="databases" value="ncbi_genes">
+                            <label for="ncbi_genes">NCBI Genes</label>
+                        </div>
+                        <div class="database-option">
+                            <input type="checkbox" id="uniprot" name="databases" value="uniprot" checked>
+                            <label for="uniprot">UniProt</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="max_results">📈 Maximum Results</label>
+                    <select id="max_results" name="max_results">
+                        <option value="5">5 results</option>
+                        <option value="10" selected>10 results</option>
+                        <option value="20">20 results</option>
+                        <option value="50">50 results</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="search-button">Search Databases</button>
+            </form>
+
+            <div class="quick-links">
+                <h3>Quick Search Examples:</h3>
+                <a href="/search" onclick="document.getElementById('query').value='insulin'; document.querySelector('form').submit();">Insulin</a>
+                <a href="/search" onclick="document.getElementById('query').value='BRCA1'; document.querySelector('form').submit();">BRCA1</a>
+                <a href="/search" onclick="document.getElementById('query').value='kinase'; document.querySelector('form').submit();">Kinase</a>
+                <a href="/search" onclick="document.getElementById('query').value='enzyme'; document.querySelector('form').submit();">Enzyme</a>
+                <a href="/search" onclick="document.getElementById('query').value='CRISPR'; document.querySelector('form').submit();">CRISPR</a>
+                <a href="/search" onclick="document.getElementById('query').value='hemoglobin'; document.querySelector('form').submit();">Hemoglobin</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
